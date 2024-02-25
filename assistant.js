@@ -20,49 +20,60 @@ app.get('/', (req, res) => {
     res.sendFile(indexPath);
 });
 
-io.on('connection', (socket) => {
-    console.log('A user connected');
+async function createNewThread() {
+    console.log('thread created');
+    const thread = await openai.beta.threads.create();
+    return thread;
+}
 
-    socket.on('askAssistant', async (userInput) => {
+io.on('connection', (socket) => {
+    console.log('connectinon established');
+
+    socket.on('createNewThread', async () => {
+        let t = await createNewThread();
+        socket.emit('newThreadCreated', t);
+    });
+
+    socket.on('askAssistant', async (userInput, frontThread) => {
         const assistant = await openai.beta.assistants.retrieve(
             'asst_j8bb3vigirhwTeZPOoLwtqls'
         );
-        const thread = await openai.beta.threads.create();
 
-        const message = await openai.beta.threads.messages.create(thread.id, {
-            role: 'user',
-            content: userInput,
-        });
+        const message = await openai.beta.threads.messages.create(
+            frontThread.id,
+            {
+                role: 'user',
+                content: userInput,
+            }
+        );
 
-        const run = await openai.beta.threads.runs.create(thread.id, {
+        const run = await openai.beta.threads.runs.create(frontThread.id, {
             assistant_id: assistant.id,
         });
 
-        const checkStatusAndPrintMessages = async (threadId, runId) => {
-            console.log(threadId);
-
-            let runStatus = await openai.beta.threads.runs.retrieve(
-                threadId,
-                runId
-            );
-            // if (runStatus.status === 'completed') {
+        const printMessages = async (threadId) => {
             let messages = await openai.beta.threads.messages.list(threadId);
             const assistantAns = messages.data[0].content[0].text.value;
             console.log('NUria: ' + assistantAns);
-
-            // Emit the assistant's answer to the connected client
             socket.emit('assistantResponse', assistantAns);
-            // } else {
-            // console.log('Run is not completed yet!');
-            // }
         };
 
-        checkStatusAndPrintMessages(thread.id, run.id);
+        while (true) {
+            let runData = await openai.beta.threads.runs.retrieve(
+                frontThread.id,
+                run.id
+            );
+            console.log(runData.status);
 
-        // Stop polling when the client disconnects
-        socket.on('disconnect', () => {
-            console.log('User disconnected');
-        });
+            if (runData.status === 'completed') {
+                printMessages(frontThread.id, run.id);
+                break;
+            } else if (runData.status === 'failed') {
+                const errorMessage =
+                    'Something unexpected happened, please try again!';
+                return socket.emit('assistanceResponse', errorMessage);
+            }
+        }
     });
 });
 

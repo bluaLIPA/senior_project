@@ -1,18 +1,16 @@
 {
     "dependencies": {
-        "colors": "^1.4.0",
         "dotenv": "^16.4.1",
         "express": "^4.18.2",
         "openai": "^4.26.1",
         "play-sound": "^1.1.6",
-        "readline-sync": "^1.4.10",
         "socket.io": "^4.7.4"
     },
     "name": "seniorproject",
     "version": "1.0.0",
-    "main": "chatBot.js",
+    "main": "assistant.js",
     "scripts": {
-        "dev": "node chatBot.js"
+        "dev": "nodemon assistant.js"
     },
     "keywords": [],
     "author": "",
