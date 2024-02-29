@@ -35,17 +35,12 @@ io.on('connection', (socket) => {
     });
 
     socket.on('askAssistant', async (userInput, frontThread) => {
-        const assistant = await openai.beta.assistants.retrieve(
-            'asst_j8bb3vigirhwTeZPOoLwtqls'
-        );
+        const assistant = await openai.beta.assistants.retrieve('asst_j8bb3vigirhwTeZPOoLwtqls');
 
-        const message = await openai.beta.threads.messages.create(
-            frontThread.id,
-            {
-                role: 'user',
-                content: userInput,
-            }
-        );
+        const message = await openai.beta.threads.messages.create(frontThread.id, {
+            role: 'user',
+            content: userInput,
+        });
 
         const run = await openai.beta.threads.runs.create(frontThread.id, {
             assistant_id: assistant.id,
@@ -59,18 +54,14 @@ io.on('connection', (socket) => {
         };
 
         while (true) {
-            let runData = await openai.beta.threads.runs.retrieve(
-                frontThread.id,
-                run.id
-            );
+            let runData = await openai.beta.threads.runs.retrieve(frontThread.id, run.id);
             console.log(runData.status);
 
             if (runData.status === 'completed') {
                 printMessages(frontThread.id, run.id);
                 break;
             } else if (runData.status === 'failed') {
-                const errorMessage =
-                    'Something unexpected happened, please try again!';
+                const errorMessage = 'Something unexpected happened, please try again!';
                 return socket.emit('assistanceResponse', errorMessage);
             }
         }
