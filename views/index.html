@@ -56,7 +56,7 @@
     let counter = 0;
 
     socket.on('assistantResponse', (message) => {
-        fakeMessage(message);
+        goodMessage(message);
     });
 
     socket.on('newThreadCreated', (newThread) => {
@@ -64,6 +64,15 @@
         thread = newThread;
         console.log(thread);
     });
+
+    // socket.on('returnVoice', () => {
+    //     console.log("here");
+    // });
+
+    function textToSpeech(text) {
+        socket.emit('getVoice', text);
+    }
+    /// funtion to text to speeach call and give text and wait For Aqberen
 
     var $messages = $('.messages-content'),
         d,
@@ -89,7 +98,7 @@
     $(window).load(function () {
         $messages.mCustomScrollbar();
         setTimeout(function () {
-            fakeMessage();
+            goodMessage();
         }, 100);
     });
 
@@ -122,7 +131,7 @@
         $('.message-input').val(null);
         updateScrollbar();
         setTimeout(function () {
-            fakeMessage();
+            goodMessage();
             socket.emit('askAssistant', msg, thread);
         }, 1000 + Math.random() * 20 * 100);
     }
@@ -147,25 +156,22 @@
         }
     });
 
-    var Fake = [
-        "Hi there, I'm Vitual Assistant, how can I help you?",
-        'Nice to meet you',
-        'How are you?',
-        'Not too bad, thanks',
-        'What do you do?',
-        "That's awesome",
-        'Codepen is a nice place to stay',
-        "I think you're a nice person",
-        'Why do you think that?',
-        'Can you explain?',
-        "Anyway I've gotta go now",
-        'It was a pleasure chat with you',
-        'Time to make a new codepen',
-        'Bye',
-        ':)',
-    ];
+    function addVoiceButtonToMessage(messageText) {
+        // Create a new button element
+        var voiceButton = document.createElement('button');
+        // Add class for styling
+        voiceButton.className = 'voice-button';
+        // Add an icon to the button
+        voiceButton.innerHTML = '<i class="fas fa-volume-up"></i>';
+        // Add event listener to send the message back when clicked
+        voiceButton.onclick = function () {
+            socket.emit('getVoice', messageText);
+        };
+        // Return the button element
+        return voiceButton;
+    }
 
-    function fakeMessage(message) {
+    function goodMessage(message) {
         if ($('.message-input').val() != '') {
             return false;
         }
@@ -173,25 +179,26 @@
             '<div class="message loading new"><figure class="avatar"><img src="" /></figure><span></span></div>'
         ).appendTo($('.mCSB_container'));
         updateScrollbar();
-
-        if (message === undefined && counter === 0) {
+        if (counter === 0) {
             message = 'Hello I am AskNuria, How can I help you?';
-        } else if (message === undefined) {
-            message = 'wait...';
         }
-
-        setTimeout(function () {
+        if (message !== undefined) {
             $('.message.loading').remove();
-            $(
+
+            var messageElement = $(
                 '<div class="message new"><figure class="avatar"><img src="" /></figure>' +
                     message +
                     '</div>'
-            )
-                .appendTo($('.mCSB_container'))
-                .addClass('new');
+            );
+            // Append the new message to the container
+            messageElement.appendTo($('.mCSB_container')).addClass('new');
+            // Add the voice button to the message
+            var voiceButton = addVoiceButtonToMessage(message);
+            messageElement.append(voiceButton);
+
             setDate();
             updateScrollbar();
-        }, 2000);
+        }
         counter++;
     }
 </script>
@@ -479,6 +486,25 @@ Messages
         margin-left: 7px;
         -webkit-animation-delay: 0.3s;
         animation-delay: 0.3s;
+    }
+
+    .voice-button {
+        border: none;
+        background-color: transparent;
+        color: #fff;
+        cursor: pointer;
+        padding: 0 10px;
+        font-size: 16px;
+        vertical-align: middle;
+        margin-left: 10px;
+    }
+
+    .voice-button:hover {
+        color: #0a5fdd;
+    }
+
+    .message .voice-button {
+        display: inline-block;
     }
 
     /*--------------------

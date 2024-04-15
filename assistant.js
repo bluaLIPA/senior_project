@@ -4,6 +4,7 @@ const express = require('express');
 const http = require('http');
 const path = require('path');
 const socketIo = require('socket.io');
+const say = require('say');
 
 const app = express();
 const server = http.createServer(app);
@@ -26,6 +27,25 @@ async function createNewThread() {
     return thread;
 }
 
+let isSpeaking = false;
+function textToSpeech(text) {
+    if (isSpeaking === false) {
+        isSpeaking = true;
+        const firstCharCode = text.charCodeAt(0);
+        if (
+            (firstCharCode >= 65 && firstCharCode <= 90) ||
+            (firstCharCode >= 97 && firstCharCode <= 122)
+        ) {
+            say.speak(text, 'Samantha');
+        } else {
+            say.speak(text, 'Milena');
+        }
+    } else {
+        say.stop();
+        isSpeaking = false;
+    }
+}
+
 io.on('connection', (socket) => {
     console.log('connectinon established');
 
@@ -34,8 +54,12 @@ io.on('connection', (socket) => {
         socket.emit('newThreadCreated', t);
     });
 
+    socket.on('getVoice', async (text) => {
+        textToSpeech(text);
+    });
+
     socket.on('askAssistant', async (userInput, frontThread) => {
-        const assistant = await openai.beta.assistants.retrieve('asst_j8bb3vigirhwTeZPOoLwtqls');
+        const assistant = await openai.beta.assistants.retrieve('asst_Z5BoQPb2m6MaOzoR5S2D0c3b');
 
         const message = await openai.beta.threads.messages.create(frontThread.id, {
             role: 'user',
