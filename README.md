@@ -1,4 +1,4 @@
-This is my senior project. Me with my peers created ChatBot that can answer question related to the KAZGUU University Library including :
+This is my senior project. Me with my peers created ChatBot that can answer questions related to the KAZGUU University Library including :
  - Information about books and their existence and location in the library
  - Infrastructure of the Library
  - Working hours of the library and so on...
