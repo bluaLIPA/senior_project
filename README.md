@@ -6,4 +6,8 @@ Stack is NodeJS, html, css.
 
 ChatBot is working using free OpenAI API. 
 
-![image](https://github.com/user-attachments/assets/0f3b4a55-5070-4024-91dd-39fc22d03a98)
+Some enhanced functionality :
+ChatBot can say everything by voice when special button is clicked
+
+                                ![image](https://github.com/user-attachments/assets/6f52b642-2757-4b40-9b47-efa68b47c42d)
+
